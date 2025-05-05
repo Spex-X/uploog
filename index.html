@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload de Imagem para Cloudinary</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f6f8fa;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 420px;
+            margin: 50px auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px #0001;
+            padding: 32px 28px 24px 28px;
+        }
+        h2 {
+            text-align: center;
+            color: #222;
+            margin-bottom: 24px;
+        }
+        #uploadForm {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        input[type=file] {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 8px;
+            background: #f3f3f3;
+        }
+        button {
+            background: #2d8cff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 0;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:disabled {
+            background: #bbb;
+            cursor: not-allowed;
+        }
+        #images {
+            margin-top: 28px;
+        }
+        .img-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            background: #f5faff;
+            padding: 8px 12px;
+            border-radius: 7px;
+            box-shadow: 0 2px 8px #0001;
+        }
+        .img-link img {
+            max-width: 56px;
+            max-height: 56px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        .img-link a {
+            word-break: break-all;
+            color: #2d8cff;
+            text-decoration: none;
+        }
+        .img-link a:hover {
+            text-decoration: underline;
+        }
+        #limite {
+            color: #d32f2f;
+            text-align: center;
+            margin-top: 16px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Upload de Imagem</h2>
+        <form id="uploadForm">
+            <input type="file" name="image" id="image" accept="image/*" required>
+            <button type="submit">Enviar</button>
+        </form>
+        <div id="limite" style="display:none;">Limite de 6 imagens atingido.</div>
+        <div id="images"></div>
+    </div>
+    <script>
+        const maxImgs = 6;
+        let images = [];
+        const imagesDiv = document.getElementById('images');
+        const form = document.getElementById('uploadForm');
+        const input = document.getElementById('image');
+        const btn = form.querySelector('button');
+        const limiteDiv = document.getElementById('limite');
+
+        function renderImages() {
+            imagesDiv.innerHTML = images.map(img => `
+                <div class="img-link">
+                    <img src="${img}" alt="Imagem enviada">
+                    <a href="${img}" target="_blank">${img}</a>
+                </div>
+            `).join('');
+            if (images.length >= maxImgs) {
+                input.disabled = true;
+                btn.disabled = true;
+                limiteDiv.style.display = '';
+            } else {
+                input.disabled = false;
+                btn.disabled = false;
+                limiteDiv.style.display = 'none';
+            }
+        }
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            if (images.length >= maxImgs) return;
+            btn.disabled = true;
+            btn.textContent = 'Enviando...';
+            const formData = new FormData();
+            const file = input.files[0];
+            formData.append('image', file);
+            try {
+                const resp = await fetch('/upload', { method: 'POST', body: formData });
+                const data = await resp.json();
+                if (data.url) {
+                    images.push(data.url);
+                    renderImages();
+                    form.reset();
+                } else {
+                    alert(data.error || 'Erro ao enviar imagem!');
+                }
+            } catch (err) {
+                alert('Erro ao conectar ao servidor.');
+            }
+            btn.textContent = 'Enviar';
+            renderImages();
+        });
+        renderImages();
+    </script>
+</body>
+</html>
