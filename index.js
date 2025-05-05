@@ -15,6 +15,11 @@ cloudinary.config({
 
 app.use(express.static(path.join(__dirname)));
 
+// Rota explícita para a raiz
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 app.post('/upload', upload.single('image'), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
   try {
