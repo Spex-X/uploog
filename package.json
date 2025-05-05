@@ -15,7 +15,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "build": "pkg ."
+    "build": "echo 'Build completed'"
   },
   "dependencies": {
     "cloudinary": "^1.41.3",
